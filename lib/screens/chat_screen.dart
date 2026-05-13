@@ -41,7 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _sendAttachment(FileType type) async {
-    final result = await FilePicker.platform.pickFiles(type: type);
+    final result = await FilePicker.pickFiles(type: type);
     if (result == null || result.files.isEmpty) {
       return;
     }
