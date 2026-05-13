@@ -45,32 +45,54 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
         final chats = snapshot.data ?? [];
         if (chats.isEmpty) {
-          return const Center(child: Text('Нет чатов. Откройте контакт, чтобы начать новый диалог.'));
+          return const Center(
+            child: Text(
+              'Нет чатов. Откройте контакт, чтобы \nначать новый диалог.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+          );
         }
 
         return RefreshIndicator(
           onRefresh: _refresh,
           child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
             itemCount: chats.length,
             itemBuilder: (context, index) {
               final chat = chats[index];
               final updated = chat.updatedAt;
               final subtitle = chat.lastMessage.isNotEmpty ? chat.lastMessage : 'Новый чат';
 
-              return ListTile(
-                leading: CircleAvatar(child: Text(chat.avatar)),
-                title: Text(chat.title),
-                subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
-                trailing: Text(
-                  '${updated.hour.toString().padLeft(2, '0')}:${updated.minute.toString().padLeft(2, '0')}',
-                  style: const TextStyle(fontSize: 12),
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  leading: CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                    child: Text(chat.avatar, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                  title: Text(chat.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  trailing: Text(
+                    'час \n${updated.hour.toString().padLeft(2, '0')}:${updated.minute.toString().padLeft(2, '0')}',
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  onTap: () async {
+                    await Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => ChatScreen(chat: chat),
+                    ));
+                    _refresh();
+                  },
                 ),
-                onTap: () async {
-                  await Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => ChatScreen(chat: chat),
-                  ));
-                  _refresh();
-                },
               );
             },
           ),

@@ -43,16 +43,33 @@ class _ContactsScreenState extends State<ContactsScreen> {
         }
 
         final contacts = snapshot.data ?? [];
-        return ListView.separated(
+        if (contacts.isEmpty) {
+          return const Center(child: Text('Нет контактов'));
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
           itemCount: contacts.length,
-          separatorBuilder: (context, index) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final user = contacts[index];
-            return ListTile(
-              leading: CircleAvatar(child: Text(user.avatar)),
-              title: Text(user.name),
-              subtitle: Text(user.status),
-              onTap: () => _openChat(user),
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                leading: CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                  foregroundColor: Theme.of(context).colorScheme.secondary,
+                  child: Text(user.avatar, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+                title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  user.status,
+                  style: const TextStyle(fontSize: 13),
+                ),
+                trailing: Icon(Icons.message, color: Theme.of(context).colorScheme.primary),
+                onTap: () => _openChat(user),
+              ),
             );
           },
         );

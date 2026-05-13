@@ -16,6 +16,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mini Telegram'), findsOneWidget);
-    expect(find.byIcon(Icons.chat_bubble_outline), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('Чаты'), findsOneWidget);
   });
 }

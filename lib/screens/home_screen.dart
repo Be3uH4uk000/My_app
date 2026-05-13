@@ -27,15 +27,37 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mini Telegram'),
+        elevation: 0,
+        title: const Text(
+          'Mini Telegram',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 24),
+        ),
+        actions: [
+          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+          PopupMenuButton(
+            itemBuilder: (context) => [
+              const PopupMenuItem(child: Text('Параметры')),
+              const PopupMenuItem(child: Text('О приложении')),
+            ],
+          ),
+        ],
       ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
+        backgroundColor: Colors.white,
         destinations: const <NavigationDestination>[
-          NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Чаты'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Контакты'),
+          NavigationDestination(
+            icon: Icon(Icons.chat_bubble_outline),
+            selectedIcon: Icon(Icons.chat_bubble),
+            label: 'Чаты',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Контакты',
+          ),
         ],
       ),
     );

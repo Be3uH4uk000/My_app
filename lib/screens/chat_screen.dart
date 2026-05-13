@@ -43,13 +43,33 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
         title: Row(
           children: [
-            CircleAvatar(child: Text(widget.chat.avatar)),
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              child: Text(widget.chat.avatar, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: Text(widget.chat.title)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(widget.chat.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                  const SizedBox(height: 2),
+                  Text('Онлайн', style: TextStyle(fontSize: 12, color: Colors.green.shade400)),
+                ],
+              ),
+            ),
           ],
         ),
+        actions: [
+          IconButton(icon: const Icon(Icons.call), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.info_outline), onPressed: () {}),
+        ],
       ),
       body: Column(
         children: [
@@ -65,29 +85,47 @@ class _ChatScreenState extends State<ChatScreen> {
                 }
                 final messages = snapshot.data ?? [];
                 if (messages.isEmpty) {
-                  return const Center(child: Text('Начните общение в этом чате.'));
+                  return const Center(
+                    child: Text(
+                      'Начните общение \nв этом чате',
+                      textAlign: TextAlign.center,
+                    ),
+                  );
                 }
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  reverse: true,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
-                    final message = messages[index];
+                    final message = messages[messages.length - 1 - index];
                     final alignment = message.isMine ? Alignment.centerRight : Alignment.centerLeft;
-                    final color = message.isMine ? Theme.of(context).colorScheme.primary : Colors.grey.shade300;
+                    final bubbleColor = message.isMine
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.primaryContainer;
                     final textColor = message.isMine ? Colors.white : Colors.black87;
 
                     return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      margin: const EdgeInsets.symmetric(vertical: 6),
                       alignment: alignment,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 280),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
+                        child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: color,
-                            borderRadius: BorderRadius.circular(16),
+                            color: bubbleColor,
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(18),
+                              topRight: const Radius.circular(18),
+                              bottomLeft: Radius.circular(message.isMine ? 18 : 4),
+                              bottomRight: Radius.circular(message.isMine ? 4 : 18),
+                            ),
                           ),
-                          child: Text(message.text, style: TextStyle(color: textColor)),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            child: Text(
+                              message.text,
+                              style: TextStyle(color: textColor, fontSize: 15),
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -98,25 +136,36 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      decoration: const InputDecoration(
-                        hintText: 'Введите сообщение',
-                        border: OutlineInputBorder(),
-                      ),
                       minLines: 1,
                       maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: 'Введите сообщение',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    color: Theme.of(context).colorScheme.primary,
-                    onPressed: _sendMessage,
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.send, color: Colors.white),
+                      onPressed: _sendMessage,
+                    ),
                   ),
                 ],
               ),
