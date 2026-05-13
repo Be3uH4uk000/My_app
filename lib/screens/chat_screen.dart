@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../database/database_provider.dart';
 import '../models/chat.dart';
@@ -38,6 +39,36 @@ class _ChatScreenState extends State<ChatScreen> {
       _loadMessages();
     });
   }
+
+  Future<void> _sendAttachment(FileType type) async {
+    final result = await FilePicker.platform.pickFiles(type: type);
+    if (result == null || result.files.isEmpty) {
+      return;
+    }
+
+    final file = result.files.first;
+    if (file.path == null) {
+      return;
+    }
+
+    final messageType = type == FileType.audio ? MessageType.audio : MessageType.video;
+    await DatabaseProvider.sendMessage(
+      widget.chat.id,
+      file.name,
+      true,
+      type: messageType,
+      mediaPath: file.path,
+      fileName: file.name,
+    );
+
+    setState(() {
+      _loadMessages();
+    });
+  }
+
+  Future<void> _sendAudio() async => _sendAttachment(FileType.audio);
+
+  Future<void> _sendVideo() async => _sendAttachment(FileType.video);
 
   @override
   Widget build(BuildContext context) {
@@ -121,10 +152,29 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            child: Text(
-                              message.text,
-                              style: TextStyle(color: textColor, fontSize: 15),
-                            ),
+                            child: message.type == MessageType.text
+                                ? Text(
+                                    message.text,
+                                    style: TextStyle(color: textColor, fontSize: 15),
+                                  )
+                                : Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        message.type == MessageType.audio ? Icons.audiotrack : Icons.videocam,
+                                        color: textColor,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          message.displayText,
+                                          style: TextStyle(color: textColor, fontSize: 15),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                           ),
                         ),
                       ),
@@ -157,6 +207,40 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(13),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.audiotrack, color: Theme.of(context).colorScheme.primary),
+                      onPressed: _sendAudio,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(13),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.videocam, color: Theme.of(context).colorScheme.primary),
+                      onPressed: _sendVideo,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
                   Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,

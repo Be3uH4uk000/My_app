@@ -18,7 +18,7 @@ class DatabaseProvider {
 
     _usersDb = await openDatabase(usersPath, version: 1, onCreate: _createUsersDb);
     _chatsDb = await openDatabase(chatsPath, version: 1, onCreate: _createChatsDb);
-    _messagesDb = await openDatabase(messagesPath, version: 1, onCreate: _createMessagesDb);
+    _messagesDb = await openDatabase(messagesPath, version: 2, onCreate: _createMessagesDb, onUpgrade: _upgradeMessagesDb);
 
     await _ensureSampleData();
   }
@@ -52,8 +52,19 @@ class DatabaseProvider {
       chatId INTEGER NOT NULL,
       text TEXT NOT NULL,
       timestamp INTEGER NOT NULL,
-      isMine INTEGER NOT NULL
+      isMine INTEGER NOT NULL,
+      type TEXT NOT NULL DEFAULT 'text',
+      mediaPath TEXT,
+      fileName TEXT
     )''');
+  }
+
+  static Future<void> _upgradeMessagesDb(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE messages ADD COLUMN type TEXT NOT NULL DEFAULT "text"');
+      await db.execute('ALTER TABLE messages ADD COLUMN mediaPath TEXT');
+      await db.execute('ALTER TABLE messages ADD COLUMN fileName TEXT');
+    }
   }
 
   static Future<void> _ensureSampleData() async {
@@ -161,19 +172,35 @@ class DatabaseProvider {
     return ChatInfo.fromMap(row.first);
   }
 
-  static Future<void> sendMessage(int chatId, String text, bool isMine) async {
+  static Future<void> sendMessage(
+    int chatId,
+    String text,
+    bool isMine, {
+    MessageType type = MessageType.text,
+    String? mediaPath,
+    String? fileName,
+  }) async {
     final now = DateTime.now();
+    final lastMessageText = switch (type) {
+      MessageType.text => text,
+      MessageType.audio => '[Аудио] ${fileName ?? text}',
+      MessageType.video => '[Видео] ${fileName ?? text}',
+    };
+
     await _messagesDb!.insert('messages', {
       'chatId': chatId,
       'text': text,
       'timestamp': now.millisecondsSinceEpoch,
       'isMine': isMine ? 1 : 0,
+      'type': type.name,
+      'mediaPath': mediaPath,
+      'fileName': fileName,
     });
 
     await _chatsDb!.update(
       'chats',
       {
-        'lastMessage': text,
+        'lastMessage': lastMessageText,
         'updatedAt': now.millisecondsSinceEpoch,
       },
       where: 'id = ?',
